@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/browserfs@1.1.0"></script>
+    <style>
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga';
+        }
+    </style>
+    <style media="screen">
+        .contents {
+            margin-top: 0;
+        }
+        .open {
+            cursor: pointer;
+        }
+        #tree {
+            user-select: none;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <div id="tree">
+        <div class="folder" id="Root">
+            <span class="open" id="Root:open">-</span> Root
+            <ul class="contents" id="Root:contents">
+                <span class="file" id="wat">wat</span>
+                <div class="folder" id="Subfolder">
+                    <span class="open" id="Subfolder:open">-</span> Subfolder
+                    <ul class="contents" id="Subfolder:contents">
+                        <span class="file">cool</span>
+                    </ul>
+                </div>
+            </ul>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var fs = (function(){
+            var obj = {};
+  		    BrowserFS.install(obj);
+  		    var lsfs = new BrowserFS.FileSystem.LocalStorage();
+ 		    BrowserFS.initialize(lsfs);
+            return obj.require('fs');
+        })();
+        function hookOpen(elm) {
+            elm.addEventListener('click', function (e) {
+                if (this.innerHTML === '+') {
+                    this.innerHTML = '-';
+                    this.nextSibling.nextSibling.style.display = 'block';
+                } else {
+                    this.innerHTML = '+';
+                    this.nextSibling.nextSibling.style.display = 'none';
+                }
+            });
+        }
+        function renderTree(start, parent) {
+            var files = fs.readdirSync('/' + start);
+            for (let v of files) {
+                if (fs.statSync(start + '/' + v).isFile()) {
+                    parent.appendChild(createFile(v));
+                } else {
+                    parent.appendChild(createFolder(v, start + '/' + v));
+                }
+            }
+            return parent;
+        }
+        function createFile(name) {
+            var file = document.createElement('span');
+            file.classList.add('file');
+            file.innerHTML = name;
+            return file;
+        }
+        function createFolder(name, path) {
+            var folder = document.createElement('div');
+            folder.classList.add('folder');
+            folder.id = name;
+            var open = document.createElement('span');
+            open.classList.add('open');
+            open.id = name + ':open';
+            open.innerHTML = '-';
+            hookOpen(open);
+            var title = document.createElement('strong');
+            title.innerHTML = name;
+            var contents = document.createElement('ul');
+            contents.classList.add('contents');
+            contents.id = name + ':contents';
+            renderTree(path, contents);
+            folder.append(open, title, contents);
+            return folder;
+        }
+        function renderFileSystem() {
+            var tree = document.getElementById('tree');
+            var children = tree.children;
+            for (let v of children) {
+                tree.removeChild(v);
+            }
+            tree.append(createFolder('Root', ''));
+        }
+    </script>
+</body>
+</html>
