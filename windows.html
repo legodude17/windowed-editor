@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://unpkg.com/browserfs@1.1.0"></script>
+    <style>
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga';
+        }
+    </style>
+    <style media="screen">
+        .editor {
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            background: #a5a5b2;
+            transition: all .5s;
+            box-shadow: 5px 5px 18px 0px;
+        }
+        .header {
+            background: #67677f;
+            width: 100%;
+            height: 28px;
+            cursor: -webkit-grab;
+        }
+        .x {
+            right: 100%;
+            margin-left: 85%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+        }
+        #editors {
+            background: #ccccff;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            min-height: 100%; 
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        .add {
+            -webkit-border-radius: 14px;
+            box-shadow: 2px 2px 2px 2px;
+            background-color: #253fdf;
+            border-width: 0;
+            width: 32px;
+            height: 32px;
+        }
+        #button {
+            width: 200px;
+            height: 32px;
+            padding: 4px;
+        }
+        button:hover ~ .tooltip {
+            opacity: 1!important;
+        }
+        .tooltip {
+            opacity: 0;
+            position: relative;
+            height: 16px;
+            margin: 8px 8px 8px 8px;
+            background: #2f3349;
+            color: white;
+            padding: 2px;
+            transition: opacity .3s;
+        }
+    </style>
+</head>
+<body>
+    <div id="editors" ondragover="event.preventDefault()">
+        <div id="button">
+            <button class="add material-icons" onclick="addEditor(36, 36)">add</button>
+            <span class="tooltip">Add Editor</span>
+        </div>
+        <div class="editor" draggable="true" style="top: 42px;">
+            <div class="header"><div class="x material-icons">close</div></div>
+            
+        </div>
+        <div class="editor" draggable="true" style="top: 300px;">
+            <div class="header"><div class="x material-icons">close</div></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var fs = (function(){
+            var obj = {};
+  		    BrowserFS.install(obj);
+  		    var lsfs = new BrowserFS.FileSystem.LocalStorage();
+ 		    BrowserFS.initialize(lsfs);
+            return obj.require('fs');
+        })();
+        function fadeOut(elm) {
+            elm.style.opacity = 0;
+            setTimeout(() => {elm.parentElement.removeChild(elm); }, 300);
+        }
+        function addEditor(x, y) {
+            var editors = document.getElementById('editors');
+            var elm = document.createElement('div');
+            var head = document.createElement('div');
+            var x = document.createElement('div');
+            elm.classList.add('editor');
+            elm.draggable = "true";
+            elm.style.top = y + "px";
+            elm.style.left = x + "px";
+            elm.style.opacity = 0;
+            head.classList.add('header');
+            x.innerHTML = "close";
+            x.classList.add('x');
+            x.classList.add('material-icons');
+            x.addEventListener('click', function (){ fadeOut(this.parentElement.parentElement); });
+            head.appendChild(x);
+            elm.appendChild(head);
+            hookEditor(elm);
+            return elm;
+        }
+        function hookEditor(elm) {
+            var lastMousePos = {x: null, y: null, head: false}
+            elm.addEventListener('dragstart', function (e) {
+                if (!lastMousePos.head){ e.preventDefault(); return; }
+                this.style.opacity = 0.4;
+            });
+            elm.addEventListener('dragend', function (e) {
+                this.style.opacity = 1;
+                this.style.top = (e.y - lastMousePos.y) + 'px';
+                this.style.left = (e.x - lastMousePos.x) + 'px';
+            });
+            elm.addEventListener('mousemove', function (e) {
+                lastMousePos.x = e.offsetX;
+                lastMousePos.y = e.offsetY;
+            });
+            elm.children[0].addEventListener('mouseover', function () {lastMousePos.head = true; });
+            elm.children[0].addEventListener('mouseout', function () {lastMousePos.head = false; });
+        }
+        window.onload = function(){
+            var elms = document.querySelectorAll('.x');
+            for (let v of elms) {
+                v.addEventListener('click', function (){ fadeOut(this.parentElement.parentElement); });
+            }
+            elms = document.querySelectorAll('.editor');
+            for (let v of elms) {
+                hookEditor(v);
+            }
+        }
+    </script>
+</body>
+</html>
