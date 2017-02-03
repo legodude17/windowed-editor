@@ -89,7 +89,7 @@
 <body>
     <div id="editors" ondragover="event.preventDefault()">
         <div id="button">
-            <button class="add material-icons" onclick="addEditor(36, 36)">add</button>
+            <button class="add material-icons" onclick="document.getElementById('editors').appendChild(addEditor(36, 36)).style.opacity = 1">add</button>
             <span class="tooltip">Add Editor</span>
         </div>
         <div class="editor" draggable="true" style="top: 42px;">
