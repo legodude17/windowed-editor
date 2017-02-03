@@ -27,6 +27,7 @@
     <style media="screen">
         .contents {
             margin-top: 0;
+            list-style-type: none;
         }
         .open {
             cursor: pointer;
@@ -102,9 +103,15 @@
             var contents = document.createElement('ul');
             contents.classList.add('contents');
             contents.id = name + ':contents';
-            renderTree(path, contents);
+            renderTree(path, {
+                appendChild(el) {
+                    var li = document.createElement('li');
+                    li.appendChild(el);
+                    contents.appendChild(li);
+                }
+            });
             folder.append(open, title, contents);
-            return folder;
+            return folder
         }
         function renderFileSystem() {
             var tree = document.getElementById('tree');
